@@ -1,0 +1,85 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include <queue>
+#include <set>
+#include <cmath>
+#include <map>
+
+#define ll long long
+#define pii pair<int,int>
+#define vii vector<pair<int,int> >
+#define vi vector<int>
+#define pb push_back
+#define mp make_pair
+#define INF 1000000000
+
+using namespace std;
+
+pii dir[4] = {{1,0}, {0,1}, {-1,0}, {0,-1}};
+
+int n;
+int k;
+vector <int> edges[55];
+pii startstop[55];
+vii cow;
+int source;
+
+int dijkstra(int source, int destination){
+    map<int,int> dist;
+    set<pair<int,int>> visited;
+    visited.insert(make_pair(0,source));
+    
+    while (!visited.empty()) {
+        int i = visited.begin()->second;
+        visited.erase(visited.begin());
+        if (cow[i].second == destination) return dist[cow[i].second];
+        for (auto j : edges[cow[i].first])
+            for (int k = startstop[j].first; k <= startstop[j].second; k++)
+                if ((dist.count(cow[k].second) == 0 || dist[cow[i].second] + (abs(cow[k].second-cow[i].second)) < dist[cow[k].second]) && cow[k].second != cow[i].second) {
+                    dist[cow[k].second] = dist[cow[i].second] + (abs(cow[k].second-cow[i].second));
+                    visited.insert(make_pair(dist[cow[k].second],k));
+                }
+    }
+    return -1;
+}
+
+int main(){
+    
+    cin >> n >> k;
+    for (int i = 0; i < n; i++){
+        int buf; cin >> buf;
+        cow.pb(mp(buf-1,i));
+    }
+    sort(cow.begin(),cow.end());
+    
+    for (int i = 0; i < n; i++){
+        if (cow[i].second == 0) source = i;
+    }
+    
+    for (int i = 0; i < k; i++){
+        string buf; cin >> buf;
+        for (int j = 0; j < k; j++){
+            if (buf[j] == '1' || (i == j && i != source)){
+                edges[i].pb(j);
+            }
+        }
+    }
+    
+    int now = 54;
+    for (int i = 0; i < n; i++){
+        if (cow[i].first != now){
+            startstop[now].second = i-1;
+            startstop[cow[i].first].first = i;
+            now = cow[i].first;
+        }
+        if (i == n-1) startstop[now].second = i;
+    }
+    for (int i = 0; i < n; i++){
+        startstop[i].second = min(startstop[i].second, startstop[i].first + 1);
+    }
+    cout << dijkstra(source,n-1);
+
+}
