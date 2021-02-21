@@ -1,0 +1,130 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include <queue>
+#include <set>
+#include <cmath>
+#include <map>
+
+#define ll long long
+#define pii pair<int,int>
+#define vii vector<pair<int,int> >
+#define vi vector<int>
+#define pb push_back
+#define mp make_pair
+
+using namespace std;
+
+pii dir[4] = {{1,0}, {0,1}, {-1,0}, {0,-1}};
+
+// variables
+int N, K;
+ll M;
+vii positions[100005]; // which positions a node reaches
+int from[100005];
+int finalp[100005]; // final position of nodes
+int vis[100005];
+vi nodes; // holds cycles
+int cnt[100005]; // see position reached by how many nodes
+int posreached; // positions reachefd by a point
+int ans[100005];
+
+// fucntion that adds the positions reached
+void add(ll node, int time){
+    for (auto x : positions[node]){
+        if (x.second > time) return;
+        if (cnt[x.first] == 0) posreached++;
+        cnt[x.first]++;
+    }
+}
+
+// function that deletes the positions reached
+void remove(ll node, int time){
+    for (auto x : positions[node]){
+        if (x.second > time) return;
+        if (cnt[x.first] == 1) posreached--;
+        cnt[x.first]--;
+    }
+}
+
+// dfs to find cycles
+void dfs(int node){
+    vis[node] = true;
+    nodes.pb(node);
+    if (!vis[finalp[node]])
+        dfs(finalp[node]);
+}
+
+int main(){
+    
+    // read in variables, set up arrays
+    cin >> N >> K >> M;
+    for (int i = 0; i < N; i++){
+        positions[i].pb(mp(i,0));
+        from[i] = i;
+    }
+    
+    // find positions after one set of swaps, and the positions a point reaches in time
+    for (int i = 0; i < K; i++){
+        int a, b;
+        cin >> a >> b;
+        a--; b--;
+        positions[from[a]].pb(mp(b,i+1));
+        positions[from[b]].pb(mp(a,i+1));
+        swap(from[a],from[b]);
+    }
+    for (int i = 0; i < N; i++){
+        finalp[from[i]] = i;
+    }
+    
+    for (int i = 0; i < N; i++)
+        if (!vis[i]){
+            // dfs to find the cycles
+            dfs(i);
+        
+            // number of cycles and remainder
+            ll D = M / K;
+            int R = M % K;
+            if (D > nodes.size()){
+                D = nodes.size();
+                R = 0;
+            }
+        
+            // add all positions reached by points less than D away from starting point
+            ll lastp = D-1;
+            for (int i = 0; i <= D-1; i++){
+                add(nodes[i], K);
+            }
+    
+            // sliding window
+            for (int i = 0; i < nodes.size(); i++){
+                ll remstart = (lastp+1) % nodes.size();
+            
+                // add positions reached by last point less than time R
+                add(nodes[remstart], R);
+                
+                // store answer
+                ans[nodes[i]] = posreached;
+    
+                // delete starting point, add new point, and repeat
+                remove(nodes[remstart], R);
+                remove(nodes[i],K);
+                add(nodes[remstart], K);
+                lastp = remstart;
+            }
+        
+            //erase this cycle
+            for (int i = 0; i <= D-1; i++)
+                remove(nodes[i], K);
+            nodes.clear();
+        
+        }
+    
+    // Output answers
+    for (int i = 0; i < N; i++)
+        cout << ans[i] << endl;
+    
+}
+
