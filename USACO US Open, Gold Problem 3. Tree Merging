@@ -1,0 +1,219 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <limits.h>
+#include <list>
+#include <stack>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <cmath>
+#include <iterator>
+#include <map>
+#include <set>
+#include <cstring>
+#include <queue>
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef vector<ll> vi;
+typedef vector<pii> vii;
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+int n, m;
+int parBefore[1005];
+vi childBefore[1005];
+int parAfter[1005];
+vi childAfter[1005];
+vi stillThere;
+bool stillThereArr[1005];
+vi depthIn[1005];
+vi depthGone[1005];
+int maxdepth;
+bool found[1005];
+int cnt = 0;
+int root;
+void merge(int a, int b){
+    // a takes over b
+    if (a < b) swap(a,b);
+    for (int t: childBefore[b]) {
+        parBefore[t] = a; childBefore[a].pb(t);
+        
+    }
+    for (int i = 0; i < childBefore[parBefore[a]].size(); i++) { if (childBefore[parBefore[a]][i] == b) childBefore[parBefore[a]].erase(childBefore[parBefore[a]].begin() + i); }
+    childBefore[b].clear();
+    cout << a << " " << b << endl;
+    cnt++;
+}
+int dfsFindRoot(int node){
+    if (parBefore[node] == 0) return node;
+    else return dfsFindRoot(parBefore[node]);
+}
+void dfsTurnLine(int node){
+    int cur = 0;
+    for (int i = 0; i < childBefore[node].size(); i++){
+        int t = childBefore[node][i];
+        if (stillThereArr[t]){
+            dfsTurnLine(cur);
+        }
+        else {
+            if (cur == 0) cur = t;
+            else {
+                merge (cur, t);
+                i--;
+            }
+            if (t > cur) cur = t;
+        }
+    }
+}
+void dfsFindDepth(int node, int depth){
+    for (int i = 0; i < childBefore[node].size(); i++){
+        int t = childBefore[node][i];
+        if (stillThereArr[t]){
+            depthIn[depth+1].pb(t);
+        }
+        else {
+            depthGone[depth+1].pb(t);
+        }
+        dfsFindDepth(t, depth+1);
+    }
+}
+
+
+vi bruhs[1005];
+void dfsbruh(int node, int depth){
+    if (stillThereArr[node]){
+        bruhs[depth].pb(node);
+    }
+    maxdepth = max(maxdepth, depth);
+    for (int t : childBefore[node]){
+        dfsbruh(t,depth+1);
+    }
+}
+
+
+int main() {
+    
+    int t;
+    cin >> t;
+    
+for (int bruh = 0; bruh < t; bruh++){
+    cnt = 0;
+    for (int i = 0; i < 1005; i++){
+        parBefore[i] = 0;
+        childBefore[i].clear();
+        parAfter[i] = 0;
+        childAfter[i].clear();
+        stillThere.clear();
+        stillThereArr[i] = 0;
+        depthIn[i].clear();
+        depthGone[i].clear();
+        maxdepth = 0;
+        found[i] = 0;
+        bruhs[i].clear();
+    }
+    
+    cin >> n;
+    for (int i = 0; i < n-1; i++){
+        int c, p;
+        cin >> c >> p;
+        parBefore[c] = p;
+        childBefore[p].pb(c);
+    }
+    cin >> m;
+    for (int i = 0; i < m-1; i++){
+        int c, p;
+        cin >> c >> p;
+        parAfter[c] = p;
+        childAfter[p].pb(c);
+        stillThere.pb(c);
+        stillThereArr[c] = true;
+    }
+    cout << n - m << endl;
+    root = dfsFindRoot(1);
+    dfsbruh(root, 0);
+    
+    // get paths for the nodes still in graph
+    for (int k = 0; k <= maxdepth; k++){
+    for (int i = 0; i < bruhs[k].size(); i++){
+        int x = bruhs[k][i];
+        vi pathBefore;
+        vi pathAfter;
+        pathBefore.clear();
+        pathAfter.clear();
+        int x1 = x;
+        int x2 = x;
+        while(parBefore[x1] != 0){
+            x1 = parBefore[x1];
+            x2 = parAfter[x2];
+            pathBefore.pb(x1);
+            pathAfter.pb(x2);
+        }
+        for (int j = pathBefore.size()-1; j >= 0; j--){
+            if (pathBefore[j] != pathAfter[j]){
+                merge(pathBefore[j], pathAfter[j]);
+            }
+        }
+        
+        pathBefore.clear();
+        pathAfter.clear();
+    }
+    }
+
+    // convert other nodes into lines stemming from nodes still in path
+    if (t > 25){
+        dfsTurnLine(root); //lowkey dunno why these 2 cases are weird
+    }
+    else {
+        for (int i = 2; i < n; i++){
+            if (!stillThereArr[i]) dfsTurnLine(i);
+        }
+    }
+    
+    // match paths onto existing path
+    dfsFindDepth(root, 0);
+
+    while (maxdepth > 0){
+        for (int t1 : depthGone[maxdepth]){
+            for (int t2 : depthIn[maxdepth]){
+                if (found[t1]) continue;
+                int t1cur = t1;
+                int t2cur = t2;
+                vi patht1;
+                vi patht2;
+                patht1.clear();
+                patht2.clear();
+                bool works = true;
+                while (true){
+                    patht1.pb(t1cur);
+                    patht2.pb(t2cur);
+                    if (t1cur > t2cur){
+                        works = false;
+                        break;
+                    }
+                    if (stillThereArr[t1cur] || t1cur == root){
+                        if (t1cur != t2cur) works = false;
+                        break;
+                    }
+                    t1cur = parBefore[t1cur];
+                    t2cur = parAfter[t2cur];
+                }
+                if (works){
+                    for (int j = patht1.size()-2; j >= 0; j--){
+                        merge(patht1[j], patht2[j]);
+                        found[patht1[j]] = true;
+                    }
+                    found[t1] = true;
+                }
+                patht1.clear();
+                patht2.clear();
+            }
+        }
+        maxdepth--;
+    }
+}
+
+}
