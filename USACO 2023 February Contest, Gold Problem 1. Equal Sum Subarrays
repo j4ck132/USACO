@@ -1,0 +1,70 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <limits.h>
+#include <list>
+#include <stack>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <cmath>
+#include <iterator>
+#include <map>
+#include <set>
+#include <cstring>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef vector<ll> vi;
+typedef vector<pii> vii;
+
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+
+int mod = 1000000007;
+vector <pair<ll, pii> > pa;
+vi ar1(511);
+ll ar2[511][511];
+
+int main() {
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++){
+        cin >> ar1[i];
+    }
+    
+    for (int i = 0; i < n; i++){
+        ar2[i][i] = ar1[i];
+        for (int j = i+1; j < n; j++){
+            ar2[i][j] = ar2[i][j-1];
+            ar2[i][j] += ar1[j];
+        }
+    }
+    
+    for (int i = 0; i < n; i++){
+        for (int j = i; j < n; j++){
+            pa.pb(mp(ar2[i][j], mp(i,j)));
+        }
+    }
+    
+    sort(pa.begin(), pa.end());
+    
+    for (int i = 0; i < n; i++){
+        ll ans = 1000000000000007;
+        for (int j = 0; j <= pa.size()-2; j++){
+            if (pa[j].s.s >= i && pa[j].s.f <= i && (pa[j+1].s.f > i || pa[j+1].s.s < i)){
+                ans = min(ans, abs(pa[j+1].f-pa[j].f));
+            }
+            if (pa[j+1].s.s >= i && pa[j+1].s.f <= i && (pa[j].s.f > i || pa[j].s.s < i)){
+                ans = min(ans, abs(pa[j+1].f-pa[j].f));
+            }
+        }
+        cout << ans << endl;
+    }
+    
+}
