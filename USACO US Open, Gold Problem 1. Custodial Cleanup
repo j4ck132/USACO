@@ -1,0 +1,148 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <limits.h>
+#include <list>
+#include <stack>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <cmath>
+#include <iterator>
+#include <map>
+#include <set>
+#include <cstring>
+#include <queue>
+
+using namespace std;
+
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef vector<ll> vi;
+typedef vector<pii> vii;
+
+#define pb push_back
+#define mp make_pair
+//#define f first
+//#define s second
+
+int n, m;
+int c[100005]; // color
+int s[100005]; // starting key
+int f[100005]; // ending key
+vi adj[100005]; // adj
+vi newadj[100005]; // new adj based on color
+bool vis[100005]; // vis array
+bool visbuf[100005];
+bool usedkeys[100005]; // if keys used already
+queue<int> newkeys; // new keys obtained thru dfs
+
+void dfs(int node, int type){
+    if (type == 0){
+        vis[node] = true;
+        if (!usedkeys[s[node]]){
+            usedkeys[s[node]] = true;
+            newkeys.push(s[node]);
+        }
+        for (int t : adj[node]){
+            if (vis[t]) continue;
+            if (!usedkeys[c[t]] && !count(newadj[c[t]].begin(), newadj[c[t]].end(), t)){
+                newadj[c[t]].pb(t);
+            }
+            else if (usedkeys[c[t]]) {
+                if (!vis[t]) dfs(t,type);
+            }
+        }
+    }
+    else {
+        vis[node] = true;
+        if (!usedkeys[f[node]]){
+            usedkeys[f[node]] = true;
+            newkeys.push(f[node]);
+        }
+        for (int t : adj[node]){
+            if (vis[t] || !visbuf[t]) continue;
+            if (!usedkeys[c[t]] && c[t] != f[t] && !count(newadj[c[t]].begin(), newadj[c[t]].end(), t)){
+                newadj[c[t]].pb(t);
+            }
+            else if (usedkeys[c[t]] || c[t] == f[t]){
+                if (!vis[t]) dfs(t,type);
+            }
+        }
+    }
+}
+void check(int node, int type){
+    dfs(node,type);
+    while (!newkeys.empty()){
+        int buf = newkeys.front();
+        newkeys.pop();
+        while (newadj[buf].size() > 0){
+            int t = newadj[buf][0];
+            newadj[buf].erase(newadj[buf].begin());
+            if (!vis[t]) dfs(t,type);
+        }
+    }
+}
+
+int main(){
+    int t;
+    cin >> t;
+    for (int i = 0; i < t; i++){
+        
+        for (int i = 0; i < 100005; i++){
+            c[i] = 0;
+            s[i] = 0;
+            f[i] = 0;
+            adj[i].clear();
+            newadj[i].clear();
+            vis[i] = 0;
+            visbuf[i] = 0;
+            usedkeys[i] = 0;
+        }
+        
+    
+    cin >> n >> m;
+    for (int i = 0; i < n; i++){
+        cin >> c[i];
+    }
+    for (int i = 0; i < n; i++){
+        cin >> s[i];
+    }
+    for (int i = 0; i < n; i++){
+        cin >> f[i];
+    }
+    for (int i = 0; i < m; i++){
+        int x, y;
+        cin >> x >> y;
+        x--; y--;
+        adj[x].pb(y);
+        adj[y].pb(x);
+    }
+    check(0,0);
+    bool works = true;
+    for (int i = 0; i < n; i++){
+        if (!vis[i] && s[i] != f[i]){
+            works = false;
+            break;
+        }
+    }
+    for (int i = 0; i < n+1; i++){
+        visbuf[i] = vis[i];
+        vis[i] = false;
+        usedkeys[i] = false;
+    }
+    if (works){
+        check(0,1);
+        for (int i = 0; i < n; i++){
+            if (!vis[i] && s[i] != f[i]){
+                works = false;
+                break;
+            }
+        }
+    }
+    if (works) cout << "YES" << endl;
+    else cout << "NO" << endl;
+        
+    }
+}
