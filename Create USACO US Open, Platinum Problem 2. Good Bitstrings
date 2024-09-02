@@ -1,0 +1,177 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <limits.h>
+#include <list>
+#include <stack>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <cmath>
+#include <iterator>
+#include <map>
+#include <set>
+#include <cstring>
+#include <queue>
+
+using namespace std;
+typedef long long ll;
+typedef pair<ll, ll> pii;
+typedef vector<ll> vi;
+typedef vector<pii> vii;
+
+#define pb push_back
+#define mp make_pair
+#define f first
+#define s second
+
+string gen_string(int64_t a, int64_t b) {
+    string res;
+    int64_t ia = 0, ib = 0;
+    while (ia + ib < a + b) {
+        if ((__int128)ia * b <= (__int128)ib * a) {
+            res += '0';
+            ia++;
+        } else {
+            res += '1';
+            ib++;
+        }
+    }
+    return res;
+}
+
+int64_t find(int64_t a, int64_t b){
+    if (a == b) return (a+b-1);
+    int64_t cnt = 0;
+    string s = gen_string(a, b);
+    for (int64_t j = 1; j <= a; j++){
+        for (int64_t k = 1; k <= b; k++){
+            string pref = gen_string(j, k);
+            auto res = mismatch(pref.begin(), pref.end(), s.begin());
+            if (res.first == pref.end())
+            {
+                cnt ++;
+            }
+        }
+    }
+    return cnt;
+}
+
+int main(){
+    
+    int64_t t;
+    cin >> t;
+    for (int64_t i = 0; i < t; i++){
+        int64_t a, b;
+        cin >> a >> b;
+        int64_t cnt = 0;
+        while (a > 10 || b > 10){
+            if (a == b) {
+                break;
+            }
+            else if (a > b){
+                if (a % b == 0){
+                    cnt += a/b-1;
+                    a = b;
+                }
+                else {
+                    cnt += (a/b)-1;
+                    a = a%b + b;
+                }
+                if (a == b) {
+                    break;
+                }
+                if (a > b){
+                    int64_t dif = a-b;
+                    int64_t bruh = b/dif;
+                    if (b % dif == 0) bruh--;
+                    cnt += 2*bruh;
+                    b -= bruh*dif;
+                    a -= bruh*dif;
+                }
+            }
+            else {
+                if (b % a == 0){
+                    cnt += b/a-1;
+                    b = a;
+                }
+                else {
+                    cnt += b/a;
+                    b %= a;
+                }
+            }
+        }
+        cout << find(a,b) + cnt << endl;
+    }
+    /*
+    for (int64_ti = 1; i < 75; i++){
+        for (int64_tj = 1; j < 75; j++){
+            int64_ta = i;
+            int64_tb = j;
+            int64_tcnt = 0;
+            int64_tinia = a;
+            int64_tinib = b;
+            while (a > 10 || b > 10){
+                if (a == b) {
+                    break;
+                }
+                else if (a > b){
+                    if (a % b == 0){
+                        cnt += a/b-1;
+                        a = b;
+                    }
+                    else {
+                        cnt += (a/b)-1;
+                        a = a%b + b;
+                    }
+                    if (a == b) {
+                        break;
+                    }
+                    if (a > b){
+                        int64_tdif = a-b;
+                        int64_tbruh = b/dif;
+                        if (b % dif == 0) bruh--;
+                        cnt += 2*bruh;
+                        b -= bruh*dif;
+                        a -= bruh*dif;
+                    }
+                }
+                else {
+                    if (b % a == 0){
+                        cnt += b/a-1;
+                        b = a;
+                    }
+                    else {
+                        cnt += b/a;
+                        b %= a;
+                    }
+                }
+            }
+            if (find(inia,inib) != find(a,b) + cnt){
+                cout << inia << " " << inib << " " << find(inia,inib) << " " << find(a,b) + cnt << endl;
+            }
+        }
+    }*/
+    
+    
+    
+    
+    /*
+    cout << find(12,7) << " " << find(12,19);
+    for (int64_ti = 12; i < 20; i ++){
+        for (int64_tj = 67; j < 100; j++){
+            int64_ta = i;
+            int64_tb = j;
+            while (b > 0){
+                if (find(a,b) != find(a,b+a)-1){
+                    cout << find(a,b) << " " << a << " " << b << endl;
+                }
+                b -= a;
+            }
+        }
+    }
+    */
+    
+    
+}
